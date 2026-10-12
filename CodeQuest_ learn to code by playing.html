@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CodeQuest: learn to code by playing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fb;--sf:#fff;--sf2:#e7edf7;--tx:#14213d;--mu:#5a6a88;--xp:#e8a100;--ok:#12a36b;--bad:#e5484d;--ac:#3a5bd9;--ln:#cfd8e8;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b33;--sf:#1a2c52;--sf2:#243a68;--tx:#eef3ff;--mu:#9fb0d3;--xp:#ffc83d;--ok:#4be0a8;--bad:#ff6b6b;--ac:#7c9bff;--ln:#2f4678}}
+:root[data-theme="dark"]{--bg:#0f1b33;--sf:#1a2c52;--sf2:#243a68;--tx:#eef3ff;--mu:#9fb0d3;--xp:#ffc83d;--ok:#4be0a8;--bad:#ff6b6b;--ac:#7c9bff;--ln:#2f4678}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:500 16px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:2px solid var(--ln)}
+.bar{max-width:880px;margin:auto;display:flex;gap:14px;align-items:center;padding:10px 16px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:22px;margin-right:auto}
+.stat{display:flex;align-items:center;gap:6px;font-weight:700;background:var(--sf);border:2px solid var(--ln);border-radius:999px;padding:4px 12px}
+.lvl{width:100%;height:10px;background:var(--sf2);border-radius:9px;overflow:hidden}
+.lvl i{display:block;height:100%;background:var(--xp);transition:width .5s}
+main{max-width:880px;margin:auto;padding:20px 16px 60px;display:grid;gap:28px;grid-template-columns:1fr}
+@media(min-width:760px){main{grid-template-columns:1.4fr 1fr}}
+h2{font-size:20px;margin:0 0 12px;font-weight:800}
+.trail{display:flex;flex-direction:column;gap:22px;padding:6px 0}
+.node{display:flex;align-items:center;gap:16px;width:100%;background:none;border:0;text-align:left;padding:0}
+.node:nth-child(even){flex-direction:row-reverse;text-align:right}
+.orb{flex:none;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-size:30px;background:var(--ac);color:#fff;border-bottom:7px solid rgba(0,0,0,.25);transition:transform .1s}
+.node:hover:not([disabled]) .orb{transform:translateY(-3px)}
+.node:active:not([disabled]) .orb{transform:translateY(3px);border-bottom-width:3px}
+.node.done .orb{background:var(--ok)}
+.node[disabled] .orb{background:var(--sf2);color:var(--mu);cursor:not-allowed}
+.node[disabled]{cursor:not-allowed}
+.node b{display:block;font-size:18px}.node span{color:var(--mu);font-size:14px}
+.card{background:var(--sf);border:2px solid var(--ln);border-radius:16px;padding:16px}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.badge{border:2px dashed var(--ln);border-radius:12px;padding:10px;text-align:center;font-size:13px;color:var(--mu);filter:grayscale(1);opacity:.7}
+.badge.on{border:2px solid var(--xp);color:var(--tx);filter:none;opacity:1}.badge div{font-size:26px}
+.lb{list-style:none;margin:0;padding:0}.lb li{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--ln)}
+.lb li.me{font-weight:800;color:var(--ac)}
+.side{display:grid;gap:20px;align-content:start}
+.ghost{background:none;border:2px solid var(--ln);border-radius:10px;padding:6px 12px;color:var(--mu)}
+section{min-width:0}.tabs{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:10px;margin-bottom:8px}.tab{flex:none;background:var(--sf);border:2px solid var(--ln);border-bottom-width:4px;border-radius:999px;padding:6px 14px;font-weight:700}.tab.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.lab{font:700 12px "JetBrains Mono",monospace;color:var(--mu);letter-spacing:.5px;margin:4px 0 6px}
+.modes{margin-bottom:14px}.modes .tab{flex:1;text-align:center}
+/* shooter overlay */
+#shoot{--bg:#090b18;--sf:#12183a;--sf2:#1d2550;--tx:#f1f5f9;--mu:#94a3b8;--ln:#2a3366;--ok:#39ff88;--bad:#fb7185;position:fixed;inset:0;background:var(--bg);color:var(--tx);z-index:10;display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#shoot.open{display:flex}
+#sq{font-size:clamp(17px,2.6vw,22px);font-weight:800;padding:0 16px 8px;max-width:880px;margin:auto;width:100%}
+#sc{max-width:880px;width:100%;margin:auto;padding:0 16px}#sc pre{margin:0 0 8px;font-size:13px}
+#sw{position:relative;flex:1;min-height:0;border-top:2px solid var(--ln)}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:none;display:block}
+#sEnd{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#090b18ec;text-align:center;gap:10px;padding:20px}
+.tag{font:700 12px "JetBrains Mono",monospace;color:#fbbf24;padding:0 16px}
+#code{--bg:#090b18;--sf:#12183a;--sf2:#1d2550;--tx:#f1f5f9;--mu:#94a3b8;--ln:#2a3366;--ok:#39ff88;--bad:#fb7185;position:fixed;inset:0;background:var(--bg);color:var(--tx);z-index:10;display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#code.open{display:flex}
+.cin{max-width:760px;width:100%;margin:auto;padding:0 16px 16px;flex:1;overflow:auto}
+.cin h3{font-size:22px;margin:4px 0 6px}.cin p{margin:0 0 12px;color:var(--mu)}
+#ce{width:100%;min-height:210px;background:#0c1426;color:#e6edff;border:2px solid var(--ln);border-radius:12px;padding:12px;font:15px/1.5 "JetBrains Mono",monospace;resize:vertical;tab-size:2}
+#co{margin-top:10px;padding:10px 12px;border-radius:10px;font:14px/1.5 "JetBrains Mono",monospace;display:none;white-space:pre-wrap}
+#co.ok{background:#0e3a25;color:#39ff88;display:block}#co.no{background:#3b1220;color:#fb7185;display:block}
+.crow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+#code .ghost{color:var(--tx)}
+.tmr{display:flex;align-items:center;gap:10px;max-width:680px;width:100%;margin:0 auto 6px;padding:0 16px;font-weight:800}
+.tmr b{min-width:26px;font-family:"JetBrains Mono",monospace}.tmr span{flex:1;height:10px;background:var(--sf2);border-radius:9px;overflow:hidden}
+.tmr i{display:block;height:100%;width:100%;background:var(--xp);border-radius:9px}.tmr i.low{background:var(--bad)}
+/* lesson overlay */
+#play{position:fixed;inset:0;background:var(--bg);z-index:10;display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#play.open{display:flex}
+.ptop{display:flex;gap:12px;align-items:center;max-width:680px;width:100%;margin:auto;padding:14px 16px}
+.x{background:none;border:0;font-size:26px;color:var(--mu)}
+.prog{flex:1;height:14px;background:var(--sf2);border-radius:9px;overflow:hidden}.prog i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.pbody{flex:1;overflow:auto;max-width:680px;width:100%;margin:auto;padding:8px 16px}
+.pbody h3{font-size:24px;margin:8px 0 14px}
+pre{background:#0c1426;color:#e6edff;border-radius:12px;padding:14px;font-size:15px;overflow-x:auto;margin:0 0 16px}
+pre u{color:#ffc83d;text-decoration:none;border-bottom:2px dashed #ffc83d;padding:0 4px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;background:var(--sf);border:2px solid var(--ln);border-bottom-width:5px;border-radius:12px;padding:12px 14px;font-family:"JetBrains Mono",monospace;font-size:15px}
+.opt.sel{border-color:var(--ac);background:var(--sf2)}
+.opt.right{border-color:var(--ok)}.opt.wrong{border-color:var(--bad)}
+.foot{border-top:2px solid var(--ln);padding:14px 16px}
+.foot .in{max-width:680px;margin:auto;display:flex;gap:14px;align-items:center;justify-content:space-between}
+.foot.ok{background:color-mix(in srgb,var(--ok) 18%,var(--bg))}.foot.no{background:color-mix(in srgb,var(--bad) 18%,var(--bg))}
+.go{background:var(--ok);color:#fff;border:0;border-bottom:5px solid rgba(0,0,0,.25);border-radius:12px;padding:12px 28px;font-weight:800}
+.go[disabled]{background:var(--sf2);color:var(--mu);cursor:not-allowed}
+.end{text-align:center;padding:30px 0}.end .big{font-size:64px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--xp);color:#14213d;font-weight:800;padding:10px 18px;border-radius:12px;z-index:20;display:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+ <div class="logo">CodeQuest</div>
+ <div class="stat" title="Day streak">🔥 <span id="st">0</span></div>
+ <div class="stat" title="XP">⚡ <span id="xp">0</span> XP</div>
+ <div class="stat" title="Level">Lv <span id="lv">1</span></div>
+ <div class="lvl" aria-label="Progress to next level"><i id="lvb"></i></div>
+</div></header>
+<main>
+ <section><div class="lab">1 · CHOOSE YOUR FIELD</div><div class="tabs" id="tabs"></div><div class="lab">2 · CHOOSE YOUR GAME</div><div class="tabs modes" id="modes"><button class="tab" data-m="classic">📖 Classic Quest</button><button class="tab" data-m="shoot">🎯 Shooter Mode</button><button class="tab" data-m="code">✍️ Write Code</button></div><h2 id="th">Your Python trail</h2><div class="trail" id="trail"></div></section>
+ <aside class="side">
+  <div class="card"><h2>Badges</h2><div class="badges" id="badges"></div></div>
+  <div class="card"><h2>This week's leaderboard</h2><ul class="lb" id="lb"></ul></div>
+  <button class="ghost" id="reset">Reset progress</button>
+ </aside>
+</main>
+<div id="play" role="dialog" aria-modal="true" aria-label="Lesson">
+ <div class="ptop"><button class="x" id="quit" aria-label="Quit lesson">✕</button><div class="prog"><i id="pg"></i></div><div class="stat">❤️ <span id="hp">5</span></div></div>
+ <div class="tmr">⏱ <b id="tml">10</b><span><i id="tmi"></i></span></div>
+ <div class="pbody" id="pb"></div>
+ <div class="foot" id="ft"><div class="in"><div id="fb"></div><button class="go" id="act" disabled>Check</button></div></div>
+</div>
+<div id="shoot" role="dialog" aria-modal="true" aria-label="Shooter lesson">
+ <div class="ptop"><button class="x" id="sQuit" aria-label="Quit">✕</button><div class="prog"><i id="sp"></i></div><div class="stat">❤️ <span id="shp">5</span></div></div>
+ <div class="tmr">⏱ <b id="stml">10</b><span><i id="stmi"></i></span></div>
+ <div class="tag">🎯 SHOOT THE CORRECT ANSWER</div>
+ <div id="sq"></div><div id="sc"></div>
+ <div id="sw"><canvas id="cv"></canvas><div id="sEnd"><div id="sEndIn"></div><button class="go" id="sBack">Back to trail</button></div></div>
+</div>
+<div id="code" role="dialog" aria-modal="true" aria-label="Write the program">
+ <div class="ptop"><button class="x" id="cQuit" aria-label="Close">✕</button><b id="ct" style="flex:1"></b><div class="stat">⚡ +30 XP</div></div>
+ <div class="cin"><p id="cd"></p><textarea id="ce" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Your code"></textarea>
+ <div id="co" role="status"></div>
+ <div class="crow"><button class="go" id="cRun">▶ Check my program</button><button class="ghost" id="cAns">Show answer</button></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const PY=[
+{n:"Variables",d:"Store and print values",i:"📦",q:[
+ {q:"Which line creates a variable named score with the value 10?",o:["score = 10","10 = score","var score = 10","let score := 10"],a:0},
+ {q:"Fill the blank to store the text Ada.",c:'name = ___\nprint(name)',o:['"Ada"','Ada','(Ada)'],a:0},
+ {q:"What does print(2 + 3) show?",o:["5","23","2 + 3","An error"],a:0},
+ {q:"What is the type of 3.14 in Python?",o:["int","float","str","bool"],a:1}]},
+{n:"Loops",d:"Repeat things without typing twice",i:"🔁",q:[
+ {q:"Fill the blank to repeat 3 times.",c:'for i in ___(3):\n    print(i)',o:["range","loop","repeat"],a:0},
+ {q:"What does for i in range(3): print(i) output?",o:["0 1 2","1 2 3","0 1 2 3","3"],a:0},
+ {q:"Fill the blank to add 1 to x each time.",c:'x = 0\nwhile x < 3:\n    x ___ 1',o:["+=","=+","++"],a:0},
+ {q:"Which keyword stops a loop early?",o:["break","stop","exit","end"],a:0}]},
+{n:"Functions",d:"Package code you can reuse",i:"🧩",q:[
+ {q:"Fill the blank to define a function.",c:'___ greet(name):\n    print("Hi", name)',o:["def","function","fun"],a:0},
+ {q:"What does return do?",o:["Sends a value back to the caller","Prints to the screen","Repeats the function","Deletes the function"],a:0},
+ {q:"Fill the blank so add(2, 3) gives 5.",c:'def add(a, b):\n    ___ a + b',o:["return","print","give"],a:0},
+ {q:"What is the result of add(2, 3) above?",o:["5","23","None","a + b"],a:0}]},
+{n:"Lists",d:"Hold many values at once",i:"📚",q:[
+ {q:"With fruits = ['a','b','c'], what is fruits[0]?",o:["'a'","'b'","'c'","0"],a:0},
+ {q:"Fill the blank to add \"d\" to the list.",c:'fruits.___("d")',o:["append","add","push"],a:0},
+ {q:"What does len([4, 5, 6]) return?",o:["3","6","15","2"],a:0},
+ {q:"Which expression gets the last item of fruits?",o:["fruits[-1]","fruits[last]","fruits[len]","fruits[0]"],a:0}]}
+];
+const JV=[
+{n:"Variables",d:"Types and declarations",i:"📦",q:[
+ {q:"Which declares an integer variable?",o:["int age = 20;","age = int 20;","integer age = 20;","var age := 20;"],a:0},
+ {q:"Fill the blank to store text.",c:'___ name = "Ada";',o:["String","string","Text"],a:0},
+ {q:"What does System.out.println(2 + 3) print?",o:["5","23","2 + 3","Error"],a:0}]},
+{n:"Control flow",d:"Loops and decisions",i:"🔁",q:[
+ {q:"Fill the blank to count up.",c:'for (int i = 0; i < 3; ___) {',o:["i++","i+1","++"],a:0},
+ {q:"Which keyword exits a loop early?",o:["break","stop","halt","leave"],a:0},
+ {q:"Fill the blank to compare equality.",c:'if (x ___ 5) {',o:["==","=",":="],a:0}]},
+{n:"Methods",d:"Reusable blocks of code",i:"🧩",q:[
+ {q:"Fill the blank so add returns a number.",c:'public static ___ add(int a, int b) {\n    return a + b;\n}',o:["int","void","def"],a:0},
+ {q:"What does a void method return?",o:["Nothing","0","null","An int"],a:0},
+ {q:"Which is the entry point of a Java program?",o:["public static void main(String[] args)","start()","run()","main.java"],a:0}]},
+{n:"Arrays",d:"Fixed-size collections",i:"📚",q:[
+ {q:"Which creates an int array of size 3?",o:["int[] a = new int[3];","int a = new [3];","array<int> a;","int a(3);"],a:0},
+ {q:"With int[] a = {4, 5, 6}, what is a.length?",o:["3","2","6","a.size()"],a:0},
+ {q:"What is the index of the first element?",o:["0","1","-1","first"],a:0}]}
+];
+const SQ=[
+{n:"SELECT",d:"Read data from a table",i:"🔎",q:[
+ {q:"Which gets all columns from students?",o:["SELECT * FROM students;","GET * students;","SELECT students *;","FETCH ALL students;"],a:0},
+ {q:"Fill the blank to name the table.",c:'SELECT name ___ students;',o:["FROM","IN","OF"],a:0},
+ {q:"Which returns only the name column?",o:["SELECT name FROM students;","SELECT students.name;","PICK name;","SELECT FROM name;"],a:0}]},
+{n:"Filtering",d:"Pick only the rows you need",i:"🧲",q:[
+ {q:"Fill the blank to filter rows.",c:'SELECT * FROM students ___ marks > 80;',o:["WHERE","IF","WHEN"],a:0},
+ {q:"Which matches names starting with A?",o:["name LIKE 'A%'","name = 'A*'","name STARTS 'A'","name ~ A"],a:0},
+ {q:"Which keyword needs both conditions true?",o:["AND","OR","BOTH","PLUS"],a:0}]},
+{n:"Sort and count",d:"ORDER BY and aggregates",i:"📊",q:[
+ {q:"Fill the blank for highest marks first.",c:'SELECT * FROM students ORDER BY marks ___;',o:["DESC","DOWN","HIGH"],a:0},
+ {q:"Which counts rows?",o:["COUNT(*)","TOTAL(*)","SUM(rows)","LEN(*)"],a:0},
+ {q:"Which gives the average of marks?",o:["AVG(marks)","MEAN(marks)","AVERAGE marks","MID(marks)"],a:0}]},
+{n:"Joins",d:"Combine two tables",i:"🔗",q:[
+ {q:"What does INNER JOIN return?",o:["Rows that match in both tables","All rows from both tables","Only unmatched rows","Rows from the first table only"],a:0},
+ {q:"Fill the blank to link the tables.",c:'SELECT * FROM a JOIN b ___ a.id = b.a_id;',o:["ON","BY","WITH"],a:0},
+ {q:"Which key links one table to another?",o:["Foreign key","Primary column","Index word","Link key"],a:0}]}
+];
+const JS=[
+{n:"Variables",d:"let, const and types",i:"📦",q:[
+ {q:"Which declares a variable that cannot be reassigned?",o:["const","let","var","fixed"],a:0},
+ {q:"Fill the blank for a value that changes.",c:'___ count = 0;\ncount = count + 1;',o:["let","const","int"],a:0},
+ {q:"What does console.log(typeof 'hi') print?",o:["string","text","str","char"],a:0}]},
+{n:"Functions",d:"Arrow functions and map",i:"🧩",q:[
+ {q:"Fill the blank to write an arrow function.",c:'const add = (a, b) ___ a + b;',o:["=>","->","=="],a:0},
+ {q:"Which prints to the browser console?",o:["console.log()","print()","System.out.println()","echo()"],a:0},
+ {q:"What does [1, 2, 3].map(x => x * 2) return?",o:["[2, 4, 6]","[1, 2, 3]","6","[1, 4, 9]"],a:0}]},
+{n:"Arrays",d:"Lists of values",i:"📚",q:[
+ {q:"Fill the blank to add an item.",c:'fruits.___("d");',o:["push","append","add"],a:0},
+ {q:"With arr = [4, 5, 6], what is arr.length?",o:["3","2","6","undefined"],a:0},
+ {q:"Which keeps only items that pass a test?",o:["arr.filter()","arr.select()","arr.where()","arr.keep()"],a:0}]},
+{n:"The DOM",d:"Control a web page",i:"🌐",q:[
+ {q:"Which selects the element with id title?",o:["document.getElementById('title')","document.id('title')","getElement('#title')","select('title')"],a:0},
+ {q:"Fill the blank to react to clicks.",c:'button.___("click", handler);',o:["addEventListener","onPress","listen"],a:0},
+ {q:"Which changes an element's text?",o:["el.textContent = 'Hi'","el.text('Hi')","el.write('Hi')","el.value.text"],a:0}]}
+];
+const CC=[
+{n:"Basics",d:"Print and declare",i:"📦",q:[
+ {q:"Which prints text in C?",o:['printf("Hi");','print("Hi")','cout >> "Hi";','echo "Hi"'],a:0},
+ {q:"Fill the blank to declare an integer.",c:'___ x = 5;',o:["int","num","integer"],a:0},
+ {q:"Every C statement normally ends with what?",o:[";",".",":","nothing"],a:0}]},
+{n:"Control flow",d:"Loops and decisions",i:"🔁",q:[
+ {q:"Which is a valid loop?",o:["while (x < 3) { x++; }","loop x < 3 do","repeat 3 times","while x < 3:"],a:0},
+ {q:"Fill the blank to compare equality.",c:'if (a ___ b) {',o:["==","=","equals"],a:0},
+ {q:"Which keyword skips to the next iteration?",o:["continue","next","skip","pass"],a:0}]},
+{n:"Functions",d:"main and your own",i:"🧩",q:[
+ {q:"Fill the blank for a function returning an int.",c:'___ add(int a, int b) {\n    return a + b;\n}',o:["int","def","func"],a:0},
+ {q:"Where does a C program start running?",o:["main()","start()","begin()","init()"],a:0},
+ {q:"Which header do you include for printf?",o:["stdio.h","print.h","iostream","io.h"],a:0}]},
+{n:"Pointers",d:"Work with memory addresses",i:"📍",q:[
+ {q:"What does & give you in C?",o:["The address of a variable","The value of a variable","The size of a variable","A pointer type"],a:0},
+ {q:"Fill the blank to store the address of x.",c:'int *p = ___x;',o:["&","*","@"],a:0},
+ {q:"What does *p do?",o:["Reads the value p points to","Returns the address of p","Deletes p","Multiplies p"],a:0}]}
+];
+PY.push(
+{n:"Strings",d:"Work with text",i:"🔤",q:[
+ {q:"What does 'Hi' + 'there' give?",o:["'Hithere'","'Hi there'","Error","'Hi+there'"],a:0},
+ {q:"Fill the blank to print the length of name.",c:'name = "Ada"\nprint(___(name))',o:["len","size","count"],a:0},
+ {q:"Which method makes text uppercase?",o:["upper()","big()","caps()","toUpper()"],a:0},
+ {q:"What does 'python'[0] return?",o:["'p'","'y'","'n'","'0'"],a:0}]},
+{n:"Conditions",d:"Make decisions",i:"🔀",q:[
+ {q:"Fill the blank to test the age.",c:'age = 20\n___ age >= 18:\n    print("Adult")',o:["if","when","check"],a:0},
+ {q:"Which keyword handles the other case?",o:["else","otherwise","then","default"],a:0},
+ {q:"Which operator means not equal?",o:["!=","=/=","~=","=!"],a:0},
+ {q:"What does 5 > 3 and 2 > 4 evaluate to?",o:["False","True","5","Error"],a:0}]},
+{n:"Dictionaries",d:"Key and value pairs",i:"🗂️",q:[
+ {q:"Which creates a dictionary?",o:['{"a": 1}','["a": 1]','("a": 1)','<"a": 1>'],a:0},
+ {q:"Fill the blank to read the value 5.",c:'d = {"x": 5}\nprint(d[___])',o:['"x"','x','5'],a:0},
+ {q:"How do you add key y with value 7?",o:['d["y"] = 7','d.add("y", 7)','d.push(y, 7)','d += y:7'],a:0},
+ {q:"Which gives all the keys?",o:["d.keys()","d.all()","d.names()","d.getkeys()"],a:0}]}
+);
+JV.push(
+{n:"Strings",d:"Text in Java",i:"🔤",q:[
+ {q:"Which gives the length of String s?",o:["s.length()","s.length","s.size()","len(s)"],a:0},
+ {q:"Fill the blank to print JAVA.",c:'String s = "java";\nSystem.out.println(s.___());',o:["toUpperCase","upper","caps"],a:0},
+ {q:"Which compares the content of two Strings?",o:["a.equals(b)","a == b","a.same(b)","a === b"],a:0},
+ {q:"What does \"Hi\" + 5 produce?",o:['"Hi5"','"Hi 5"','Error','"Hi+5"'],a:0}]},
+{n:"Classes",d:"Objects and blueprints",i:"🏗️",q:[
+ {q:"Which keyword defines a class?",o:["class","struct","object","define"],a:0},
+ {q:"Fill the blank to create an object.",c:'Dog d = ___ Dog();',o:["new","make","create"],a:0},
+ {q:"What is a constructor?",o:["A method that runs when an object is created","A loop","A data type","A package"],a:0},
+ {q:"Which keyword refers to the current object?",o:["this","self","me","current"],a:0}]},
+{n:"Collections",d:"ArrayList and more",i:"🧺",q:[
+ {q:"Which creates a list of Strings?",o:["ArrayList<String> l = new ArrayList<>();","List l = String[];","String l = new List();","ArrayList l = {};"],a:0},
+ {q:"Fill the blank to add an item.",c:'list.___("a");',o:["add","push","append"],a:0},
+ {q:"Which gets the item at index 1?",o:["list.get(1)","list[1]","list.at(1)","list.item(1)"],a:0},
+ {q:"Which returns the number of items?",o:["size()","length()","count()","len()"],a:0}]}
+);
+SQ.push(
+{n:"Insert and update",d:"Change your data",i:"✏️",q:[
+ {q:"Which adds a new row?",o:["INSERT INTO","ADD ROW","PUT INTO","APPEND TO"],a:0},
+ {q:"Fill the blank to change marks.",c:'UPDATE students ___ marks = 90 WHERE id = 1;',o:["SET","TO","PUT"],a:0},
+ {q:"Which removes rows?",o:["DELETE FROM","REMOVE FROM","DROP ROWS","ERASE"],a:0},
+ {q:"What happens if UPDATE has no WHERE?",o:["All rows change","Nothing changes","Only the first row changes","It always errors"],a:0}]},
+{n:"Group by",d:"Summarise by category",i:"🧮",q:[
+ {q:"Fill the blank to group rows.",c:'SELECT dept, COUNT(*) FROM staff ___ BY dept;',o:["GROUP","SORT","ORDER"],a:0},
+ {q:"Which filters groups after GROUP BY?",o:["HAVING","WHERE","FILTER","IF"],a:0},
+ {q:"Which gives the largest value?",o:["MAX()","TOP()","BIG()","HIGH()"],a:0},
+ {q:"Which gives the total of a column?",o:["SUM()","ADD()","TOTAL()","PLUS()"],a:0}]},
+{n:"Tables",d:"Create and design",i:"🏛️",q:[
+ {q:"Which creates a table?",o:["CREATE TABLE","MAKE TABLE","NEW TABLE","BUILD TABLE"],a:0},
+ {q:"Fill the blank for a primary key.",c:'CREATE TABLE t (id INT ___ KEY);',o:["PRIMARY","MAIN","FIRST"],a:0},
+ {q:"Which type stores whole numbers?",o:["INT","TEXTNUM","WHOLE","NUMTEXT"],a:0},
+ {q:"Which constraint stops empty values?",o:["NOT NULL","NO EMPTY","REQUIRED","FILLED"],a:0}]}
+);
+JS.push(
+{n:"Strings",d:"Text and templates",i:"🔤",q:[
+ {q:"Which makes text uppercase?",o:["toUpperCase()","upper()","caps()","toUpper()"],a:0},
+ {q:"Fill the blank for a template literal.",c:'console.log(`Hi ___{name}`);',o:["$","#","%"],a:0},
+ {q:"What does 'a' + 1 give?",o:["'a1'","'a 1'","NaN","1"],a:0},
+ {q:"Which gives the length of string s?",o:["s.length","s.length()","s.size","len(s)"],a:0}]},
+{n:"Loops and logic",d:"Repeat and decide",i:"🔁",q:[
+ {q:"Fill the blank to count up.",c:'for (let i = 0; i < 3; ___) {',o:["i++","i+1","++"],a:0},
+ {q:"Which operator checks value and type?",o:["===","==","=","=>"],a:0},
+ {q:"Which keyword handles the other case?",o:["else","otherwise","then","default"],a:0},
+ {q:"What does Boolean(0) return?",o:["false","true","0","undefined"],a:0}]},
+{n:"Objects",d:"Group related data",i:"🧱",q:[
+ {q:"Which creates an object?",o:["const p = { name: 'Ada' };","const p = ['name': 'Ada'];","const p = (name = 'Ada');","object p = 'Ada';"],a:0},
+ {q:"Fill the blank to read the name.",c:'const p = { name: "Ada" };\nconsole.log(p.___);',o:["name","key","Ada"],a:0},
+ {q:"Which turns JSON text into an object?",o:["JSON.parse()","JSON.read()","JSON.object()","parseJSON()"],a:0},
+ {q:"What does Object.keys({a:1}) return?",o:["['a']","[1]","'a'","{a}"],a:0}]}
+);
+CC.push(
+{n:"Arrays",d:"Lists of values",i:"📚",q:[
+ {q:"Which declares an int array of 5?",o:["int a[5];","int[5] a;","array a(5);","int a = [5];"],a:0},
+ {q:"What is the index of the first element?",o:["0","1","-1","5"],a:0},
+ {q:"Fill the blank to print 6.",c:'int a[3] = {4, 5, 6};\nprintf("%d", a[___]);',o:["2","3","0"],a:0},
+ {q:"What ends every C string?",o:["'\\0'","'\\n'","'#'","' '"],a:0}]},
+{n:"Strings",d:"Text in C",i:"🔤",q:[
+ {q:"Which header has strlen?",o:["string.h","stdio.h","math.h","stdlib.h"],a:0},
+ {q:"Which type holds one character?",o:["char","string","text","chr"],a:0},
+ {q:"Fill the blank to print a string.",c:'char s[] = "hi";\nprintf("%___", s);',o:["s","d","c"],a:0},
+ {q:"Which function compares two strings?",o:["strcmp","strcompare","equals","strsame"],a:0}]},
+{n:"Memory",d:"malloc and free",i:"🧠",q:[
+ {q:"Which allocates memory at runtime?",o:["malloc","alloc","new","create"],a:0},
+ {q:"Which releases memory?",o:["free","delete","release","drop"],a:0},
+ {q:"Fill the blank to allocate an int.",c:'int *p = ___(sizeof(int));',o:["malloc","free","new"],a:0},
+ {q:"What does a NULL pointer mean?",o:["It points to nothing","It points to zero","It points to main","It is an int"],a:0}]}
+);
+const DS=[
+{n:"Big-O basics",d:"How fast does code grow?",i:"📈",q:[
+ {q:"What is the time complexity of reading arr[i]?",o:["O(1)","O(n)","O(log n)","O(n²)"],a:0},
+ {q:"A single loop over n items is",o:["O(n)","O(1)","O(log n)","O(n²)"],a:0},
+ {q:"Two nested loops over n items are",o:["O(n²)","O(n)","O(2n)","O(log n)"],a:0},
+ {q:"Which grows slowest as n gets big?",o:["O(log n)","O(n)","O(n²)","O(2ⁿ)"],a:0}]},
+{n:"Arrays",d:"Items side by side",i:"🧱",q:[
+ {q:"How are array elements stored?",o:["Next to each other in memory","Linked by pointers","In random places","In a tree"],a:0},
+ {q:"Inserting at the start of an array costs",o:["O(n)","O(1)","O(log n)","O(n²)"],a:0},
+ {q:"With n items, what is the last index (0-based)?",o:["n - 1","n","n + 1","1"],a:0},
+ {q:"Fill the blank to print 7.",c:'arr = [3, 5, 7]\nprint(arr[___])',o:["2","3","1"],a:0}]},
+{n:"Linked lists",d:"Nodes that point onward",i:"🔗",q:[
+ {q:"A singly linked node holds data and",o:["a pointer to the next node","an index","a key","the head"],a:0},
+ {q:"Inserting at the head of a linked list costs",o:["O(1)","O(n)","O(log n)","O(n²)"],a:0},
+ {q:"How do you reach the 5th node?",o:["Walk from the head","Jump with index 4","Binary search","Hash it"],a:0},
+ {q:"The last node's next pointer is",o:["null","head","its own data","-1"],a:0}]},
+{n:"Stacks and queues",d:"LIFO and FIFO",i:"🥞",q:[
+ {q:"A stack follows which rule?",o:["LIFO","FIFO","Random order","Sorted order"],a:0},
+ {q:"A queue follows which rule?",o:["FIFO","LIFO","Random order","Sorted order"],a:0},
+ {q:"Which operation adds to a stack?",o:["push","enqueue","peek","dequeue"],a:0},
+ {q:"Which structure suits undo in an editor?",o:["Stack","Queue","Graph","Hash table"],a:0}]},
+{n:"Search and sort",d:"Find and order data",i:"🔍",q:[
+ {q:"Binary search needs the data to be",o:["Sorted","Unique","Numeric only","In a list"],a:0},
+ {q:"Binary search time complexity is",o:["O(log n)","O(n)","O(1)","O(n²)"],a:0},
+ {q:"Bubble sort worst-case time is",o:["O(n²)","O(n)","O(log n)","O(n log n)"],a:0},
+ {q:"Which sort is typically O(n log n)?",o:["Merge sort","Bubble sort","Insertion sort","Selection sort"],a:0}]},
+{n:"Hash tables",d:"Fast key lookups",i:"🗝️",q:[
+ {q:"A hash table stores data as",o:["Key and value pairs","Sorted rows","Nodes in a line","Layers of stacks"],a:0},
+ {q:"Average lookup time in a hash table is",o:["O(1)","O(n)","O(log n)","O(n²)"],a:0},
+ {q:"Two keys landing in the same slot is a",o:["Collision","Overflow","Duplicate","Overwrite"],a:0},
+ {q:"A hash function turns a key into",o:["An index","A sorted list","A head pointer","A tree"],a:0}]},
+{n:"Trees and graphs",d:"Branches and networks",i:"🌳",q:[
+ {q:"A binary tree node has at most how many children?",o:["2","1","3","Unlimited"],a:0},
+ {q:"In a binary search tree, left child values are",o:["Smaller","Larger","Equal","Random"],a:0},
+ {q:"BFS uses which structure?",o:["Queue","Stack","Hash table","Heap"],a:0},
+ {q:"DFS typically uses which structure?",o:["Stack","Queue","Sorted list","Hash table"],a:0}]}
+];
+const RANKS=["Rookie","Apprentice","Coder","Hacker","Pro","Expert","Master","Elite","Legend","Mythic"];
+const rank=l=>RANKS[Math.min(RANKS.length-1,Math.floor((l-1)/5))];
+const LG={Python:{e:"🐍",d:PY},Java:{e:"☕",d:JV},SQL:{e:"🗄️",d:SQ},JavaScript:{e:"🌐",d:JS},C:{e:"⚙️",d:CC},DSA:{e:"🧠",d:DS}};
+Object.values(LG).forEach(g=>g.d.forEach(l=>l.q.forEach(q=>{const c=q.o[q.a];q.o.sort(()=>Math.random()-.5);q.a=q.o.indexOf(c)})));
+let L=PY;
+const cnt=s=>Object.values(s.p).reduce((a,b)=>a+b.length,0);
+const BD=[["🌱","First lesson",s=>cnt(s)>=1],["🔥","3-day streak",s=>s.streak>=3],["💯","Perfect lesson",s=>s.perfect>=1],["🏆","12 lessons",s=>cnt(s)>=12],["⭐","Level 3",s=>lv(s.xp)>=3],["⚡","200 XP",s=>s.xp>=200],["🥈","Level 5",s=>lv(s.xp)>=5],["💎","500 XP",s=>s.xp>=500],["🚀","20 lessons",s=>cnt(s)>=20],["👑","Level 10",s=>lv(s.xp)>=10],["✍️","First program",s=>codeCnt(s)>=1],["🧑‍💻","5 programs",s=>codeCnt(s)>=5],["🏅","Level 25",s=>lv(s.xp)>=25],["🌟","Level 50",s=>lv(s.xp)>=50]];
+const MAXLV=50,tot=L=>60*(L-1)+15*(L-1)*L/2;
+const lv=x=>{let L=1;while(L<MAXLV&&x>=tot(L+1))L++;return L};
+const lvPct=x=>{const L=lv(x);return L>=MAXLV?1:(x-tot(L))/(tot(L+1)-tot(L))};
+const $=id=>document.getElementById(id);
+const esc=t=>t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+let S={xp:0,p:{},streak:0,last:"",perfect:0};
+try{const r=localStorage.getItem("cq2");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+let lang=LG[S.lang]?S.lang:"Python";
+const D=()=>S.p[lang]||(S.p[lang]=[]);
+$("tabs").onclick=e=>{const b=e.target.closest(".tab");if(b){lang=b.dataset.l;S.lang=lang;save();render()}};
+const save=()=>{try{localStorage.setItem("cq2",JSON.stringify(S))}catch(e){}};
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2200)}
+function render(){
+ L=LG[lang].d;$("tabs").innerHTML=Object.keys(LG).map(k=>`<button class="tab ${k===lang?"on":""}" data-l="${k}">${LG[k].e} ${k}</button>`).join("");$("th").textContent="Your "+lang+" trail";
+ $("xp").textContent=S.xp;$("lv").textContent=lv(S.xp)+" · "+rank(lv(S.xp));$("st").textContent=S.streak;$("lvb").style.width=lvPct(S.xp)*100+"%";
+ $("trail").innerHTML=L.map((l,i)=>{const d=D().includes(i),open=i===0||D().includes(i-1);
+  return `<button class="node ${d?"done":""}" data-i="${i}" ${open?"":"disabled"}><div class="orb">${d?"✓":open?l.i:"🔒"}</div><div><b>${l.n}</b><span>${open?l.d:"Finish the lesson before this one"}</span></div></button>`}).join("");
+ $("badges").innerHTML=BD.map(b=>`<div class="badge ${b[2](S)?"on":""}"><div>${b[0]}</div>${b[1]}</div>`).join("");
+ const rows=[["Meera",340],["Arjun",210],["Priya",120],["Karthik",60]].concat([["You",S.xp]]).sort((a,b)=>b[1]-a[1]);
+ $("lb").innerHTML=rows.map((r,i)=>`<li class="${r[0]==="You"?"me":""}"><span>${i+1}. ${r[0]}</span><span>${r[1]} XP</span></li>`).join("");
+}
+$("trail").onclick=e=>{const b=e.target.closest(".node");if(b&&!b.disabled)start(+b.dataset.i)};
+$("reset").onclick=()=>{if(confirm("Clear all XP, progress and badges?")){S={xp:0,p:{},streak:0,last:"",perfect:0};save();render()}};
+let cur,qi,hp,sel,checked,gained,wrongs;
+function start(i){if(MODE==="code")return codeStart(i);if(MODE==="shoot")return shootStart(i);cur=i;qi=0;hp=5;gained=0;wrongs=0;$("play").classList.add("open");ask()}
+function ask(){
+ const q=L[cur].q[qi];sel=null;checked=false;$("hp").textContent=hp;$("pg").style.width=qi/L[cur].q.length*100+"%";
+ $("pb").innerHTML=`<h3>${esc(q.q)}</h3>`+(q.c?`<pre>${esc(q.c).replace("___","<u id=\"bl\">&nbsp;&nbsp;&nbsp;</u>")}</pre>`:"")+`<div class="opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div>`;
+ $("ft").className="foot";$("fb").textContent="";const a=$("act");a.textContent="Check";a.disabled=true;a.style.display="";tStart(10,timeUp,()=>checked||!$("play").classList.contains("open"),$("tmi"),$("tml"));
+}
+$("pb").onclick=e=>{const o=e.target.closest(".opt");if(!o||checked)return;sel=+o.dataset.i;
+ document.querySelectorAll(".opt").forEach(x=>x.classList.toggle("sel",x===o));
+ const bl=$("bl");if(bl)bl.textContent=o.textContent;$("act").disabled=false};
+$("act").onclick=()=>{
+ if(!checked){const q=L[cur].q[qi],ok=sel===q.a;checked=true;
+  const os=document.querySelectorAll(".opt");os[q.a].classList.add("right");if(!ok&&os[sel])os[sel].classList.add("wrong");
+  if(ok){gained+=10;$("ft").className="foot ok";$("fb").innerHTML="<b>Correct! +10 XP</b>"}
+  else{hp--;wrongs++;$("hp").textContent=hp;$("ft").className="foot no";$("fb").innerHTML="<b>Not quite.</b> The answer is <code>"+esc(q.o[q.a])+"</code>"}
+  $("act").textContent=hp<=0?"See result":"Continue";return}
+ if(hp<=0)return finish(false);
+ qi++;if(qi>=L[cur].q.length)return finish(true);ask()};
+function finish(win){
+ $("pg").style.width="100%";const a=$("act");
+ if(win){const perfect=wrongs===0;if(perfect){gained+=20;S.perfect++}
+  const before=lv(S.xp);S.xp+=gained;if(!D().includes(cur))D().push(cur);
+  const today=new Date().toDateString(),y=new Date(Date.now()-864e5).toDateString();
+  if(S.last!==today){S.streak=S.last===y?S.streak+1:1;S.last=today}
+  save();
+  $("pb").innerHTML=`<div class="end"><div class="big">${perfect?"🏆":"🎉"}</div><h3>${L[cur].n} complete!</h3><p>You earned <b>${gained} XP</b>${perfect?" including a 20 XP perfect bonus":""}.</p>${lv(S.xp)>before?"<p><b>Level up! You are now level "+lv(S.xp)+" · "+rank(lv(S.xp))+".</b></p>":""}</div>`;
+ }else{$("pb").innerHTML=`<div class="end"><div class="big">💔</div><h3>Out of hearts</h3><p>Review the answers and try this lesson again. No XP lost.</p></div>`}
+ $("ft").className="foot";$("fb").textContent="";a.disabled=false;a.textContent="Back to trail";a.onclick=()=>{a.onclick=main;$("play").classList.remove("open");render()}}
+const main=$("act").onclick;
+$("quit").onclick=()=>{$("play").classList.remove("open");$("act").onclick=main};
+/* ===== Shooter mode ===== */
+let MODE=S.mode==="shoot"?"shoot":"classic";
+function paintModes(){document.querySelectorAll("#modes .tab").forEach(b=>b.classList.toggle("on",b.dataset.m===MODE))}
+$("modes").onclick=e=>{const b=e.target.closest(".tab");if(b){MODE=b.dataset.m;S.mode=MODE;save();paintModes()}};
+const cv=$("cv"),cx=cv.getContext("2d");
+const sh={on:false,tg:[],fx:[],shake:0,flash:0,tr:null,lock:false,W:0,H:0,m:{x:200,y:200},last:0,raf:0};
+let ac;function beep(f,d,t,v){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function sizeS(){const r=$("sw").getBoundingClientRect(),d=window.devicePixelRatio||1;sh.W=r.width;sh.H=r.height;cv.width=r.width*d;cv.height=r.height*d;cx.setTransform(d,0,0,d,0,0);sh.tg.forEach(t=>{t.x=Math.min(t.x,Math.max(0,sh.W-t.w))})}
+addEventListener("resize",()=>{if(sh.on)sizeS()});
+function shootStart(i){cur=i;qi=0;hp=5;gained=0;wrongs=0;$("sEnd").style.display="none";$("shoot").classList.add("open");sh.on=true;sh.fx=[];sNext();sh.last=performance.now();cancelAnimationFrame(sh.raf);sh.raf=requestAnimationFrame(sFrame)}
+function sNext(){
+ const q=L[cur].q[qi];sh.lock=false;$("shp").textContent=hp;$("sp").style.width=qi/L[cur].q.length*100+"%";
+ $("sq").textContent=q.q;$("sc").innerHTML=q.c?`<pre>${esc(q.c).replace("___","<u>&nbsp;&nbsp;&nbsp;</u>")}</pre>`:"";
+ sizeS();cx.font='700 16px "JetBrains Mono",monospace';
+ const n=q.o.length,top=sh.H*.05,lane=sh.H*.55/n;
+ sh.tg=q.o.map((t,k)=>{const w=Math.min(sh.W-20,Math.max(90,cx.measureText(t).width+36));
+  return{t,ok:k===q.a,w,h:Math.min(46,lane-8),x:10+Math.random()*Math.max(1,sh.W-w-20),y:top+k*lane+4,vx:(k%2?1:-1)*(55+Math.random()*50)*(1+qi*.2),st:"idle"}});
+ tStart(10,sTimeUp,()=>!sh.on||sh.lock,$("stmi"),$("stml"));
+}
+const gunPos=()=>({x:sh.W/2,y:sh.H-8});
+function sShoot(x,y){
+ if(!sh.on||sh.lock)return;const g=gunPos();sh.flash=.08;sh.tr={x0:g.x,y0:g.y,x1:x,y1:y,t:.18};beep(180,.09,"sawtooth",.06);
+ for(let i=sh.tg.length-1;i>=0;i--){const t=sh.tg[i];
+  if(t.st==="idle"&&x>=t.x&&x<=t.x+t.w&&y>=t.y&&y<=t.y+t.h){
+   if(t.ok){t.st="good";gained+=10;sh.lock=true;sh.fx.push({x:t.x+t.w/2,y:t.y,txt:"+10 XP",c:"#39ff88",t:1});beep(660,.2,"triangle",.08);
+    setTimeout(()=>{if(!sh.on)return;qi++;if(qi>=L[cur].q.length)finishShoot(true);else sNext()},750)}
+   else{t.st="bad";hp--;wrongs++;sh.shake=.25;$("shp").textContent=hp;sh.fx.push({x:t.x+t.w/2,y:t.y,txt:"-1 ♥",c:"#fb7185",t:1});beep(110,.25,"sawtooth",.08);
+    if(hp<=0){sh.lock=true;sh.tg.forEach(a=>{if(a.ok)a.st="reveal"});setTimeout(()=>{if(sh.on)finishShoot(false)},900)}}
+   return}}
+}
+function pos(e){const r=cv.getBoundingClientRect();sh.m.x=e.clientX-r.left;sh.m.y=e.clientY-r.top}
+cv.addEventListener("pointermove",pos);cv.addEventListener("pointerdown",e=>{pos(e);sShoot(sh.m.x,sh.m.y)});
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+function sFrame(now){
+ if(!sh.on)return;const dt=Math.min(.05,(now-sh.last)/1000);sh.last=now;const W=sh.W,H=sh.H;
+ sh.tg.forEach(t=>{if(t.st==="idle"||t.st==="reveal"){t.x+=t.vx*dt;if(t.x<0){t.x=0;t.vx=Math.abs(t.vx)}if(t.x+t.w>W){t.x=W-t.w;t.vx=-Math.abs(t.vx)}}});
+ sh.shake=Math.max(0,sh.shake-dt);sh.flash=Math.max(0,sh.flash-dt);if(sh.tr){sh.tr.t-=dt;if(sh.tr.t<=0)sh.tr=null}
+ sh.fx.forEach(f=>{f.t-=dt;f.y-=40*dt});sh.fx=sh.fx.filter(f=>f.t>0);
+ cx.save();cx.clearRect(0,0,W,H);if(sh.shake>0)cx.translate((Math.random()-.5)*10,(Math.random()-.5)*10);
+ cx.strokeStyle="#141a36";cx.lineWidth=1;for(let x=0;x<W;x+=50){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}for(let y=0;y<H;y+=50){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+ cx.font='700 16px "JetBrains Mono",monospace';cx.textAlign="center";cx.textBaseline="middle";
+ sh.tg.forEach(t=>{const c=t.st==="good"?"#39ff88":t.st==="bad"?"#fb7185":t.st==="reveal"?"#fbbf24":"#22d3ee";
+  cx.shadowColor=c;cx.shadowBlur=t.st==="idle"?8:20;rr(t.x,t.y,t.w,t.h,10);cx.fillStyle=t.st==="good"?"#0e3a25":t.st==="bad"?"#3b1220":"#12183a";cx.fill();cx.lineWidth=2;cx.strokeStyle=c;cx.stroke();cx.shadowBlur=0;
+  cx.fillStyle="#f1f5f9";cx.fillText(t.t,t.x+t.w/2,t.y+t.h/2+1,t.w-16)});
+ const g=gunPos();let a=Math.atan2(sh.m.y-g.y,sh.m.x-g.x);a=Math.max(-Math.PI+.15,Math.min(-.15,a));
+ cx.save();cx.translate(g.x,g.y);cx.rotate(a);cx.fillStyle="#2a3366";rr(-6,-9,70,18,4);cx.fill();cx.fillStyle="#94a3b8";rr(40,-6,34,12,3);cx.fill();cx.fillStyle="#fbbf24";cx.fillRect(66,-3,10,6);
+ if(sh.flash>0){cx.fillStyle="#fde68a";cx.shadowColor="#fbbf24";cx.shadowBlur=24;cx.beginPath();cx.arc(86,0,14,0,7);cx.fill();cx.shadowBlur=0}cx.restore();
+ cx.fillStyle="#12183a";cx.strokeStyle="#39ff88";cx.lineWidth=2;cx.beginPath();cx.arc(g.x,g.y,22,Math.PI,0);cx.fill();cx.stroke();
+ if(sh.tr){cx.globalAlpha=Math.min(1,sh.tr.t/.18);cx.strokeStyle="#22d3ee";cx.lineWidth=3;cx.shadowColor="#22d3ee";cx.shadowBlur=12;cx.beginPath();cx.moveTo(sh.tr.x0+Math.cos(a)*80,sh.tr.y0+Math.sin(a)*80);cx.lineTo(sh.tr.x1,sh.tr.y1);cx.stroke();cx.shadowBlur=0;cx.globalAlpha=1}
+ cx.font="800 22px Arial,sans-serif";sh.fx.forEach(f=>{cx.globalAlpha=Math.min(1,f.t*1.5);cx.fillStyle=f.c;cx.fillText(f.txt,f.x,f.y)});cx.globalAlpha=1;
+ const m=sh.m;cx.strokeStyle="#39ff88";cx.lineWidth=2;cx.beginPath();cx.arc(m.x,m.y,14,0,7);cx.moveTo(m.x-22,m.y);cx.lineTo(m.x-6,m.y);cx.moveTo(m.x+6,m.y);cx.lineTo(m.x+22,m.y);cx.moveTo(m.x,m.y-22);cx.lineTo(m.x,m.y-6);cx.moveTo(m.x,m.y+6);cx.lineTo(m.x,m.y+22);cx.stroke();
+ cx.restore();sh.raf=requestAnimationFrame(sFrame)}
+function finishShoot(win){
+ $("sp").style.width="100%";let h;
+ if(win){const perfect=wrongs===0;if(perfect){gained+=20;S.perfect++}
+  const before=lv(S.xp);S.xp+=gained;if(!D().includes(cur))D().push(cur);
+  const today=new Date().toDateString(),y=new Date(Date.now()-864e5).toDateString();
+  if(S.last!==today){S.streak=S.last===y?S.streak+1:1;S.last=today}save();
+  h=`<div class="end"><div class="big">${perfect?"🏆":"🎉"}</div><h3>${L[cur].n} complete!</h3><p>You earned <b>${gained} XP</b>${perfect?" including a 20 XP perfect bonus":""}.</p>${lv(S.xp)>before?"<p><b>Level up! You are now level "+lv(S.xp)+" · "+rank(lv(S.xp))+".</b></p>":""}</div>`}
+ else h=`<div class="end"><div class="big">💔</div><h3>Out of hearts</h3><p>Try this lesson again. No XP lost.</p></div>`;
+ sh.on=false;$("sEndIn").innerHTML=h;$("sEnd").style.display="flex"}
+function leaveShoot(){sh.on=false;$("shoot").classList.remove("open");render()}
+$("sBack").onclick=leaveShoot;$("sQuit").onclick=leaveShoot;
+/* ===== Write Code mode ===== */
+const CODE={
+Python:[
+{n:"Hello, World",d:"Print a message",i:"👋",s:'# print Hello, World!\n',h:'Use print("Hello, World!")',re:[/print\s*\(\s*["']Hello, World!["']\s*\)/],a:'print("Hello, World!")'},
+{n:"Add two numbers",d:"Variables and a sum",i:"➕",s:'# a = 4, b = 6, print their sum\n',h:'Create a = 4 and b = 6, then print(a + b)',re:[/\ba\s*=\s*4\b/,/\bb\s*=\s*6\b/,/print\s*\(\s*a\s*\+\s*b\s*\)/],a:'a = 4\nb = 6\nprint(a + b)'},
+{n:"Count 1 to 5",d:"Use a for loop",i:"🔁",s:'# print 1 to 5, one per line\n',h:'for i in range(1, 6): then print(i)',re:[/for\s+\w+\s+in\s+range\s*\(\s*1\s*,\s*6\s*\)\s*:/,/print\s*\(/],a:'for i in range(1, 6):\n    print(i)'},
+{n:"Square function",d:"Return n * n",i:"🧩",s:'# define square(n)\n',h:'def square(n): then return n * n',re:[/def\s+square\s*\(\s*n\s*\)\s*:/,/return\s+(n\s*\*\s*n|n\s*\*\*\s*2)/],a:'def square(n):\n    return n * n'},
+{n:"Even or odd",d:"Use the % operator",i:"🎲",s:'# define is_even(n)\n',h:'def is_even(n): and return n % 2 == 0',re:[/def\s+is_even\s*\(\s*n\s*\)\s*:/,/%\s*2\s*==\s*0/,/return/],a:'def is_even(n):\n    return n % 2 == 0'}],
+Java:[
+{n:"Hello, World",d:"Print a message",i:"👋",s:'// print Hello, World!\n',h:'System.out.println("Hello, World!");',re:[/System\.out\.println\s*\(\s*"Hello, World!"\s*\)\s*;/],a:'System.out.println("Hello, World!");'},
+{n:"Add two numbers",d:"int variables and a sum",i:"➕",s:'// a = 4, b = 6, print the sum\n',h:'int a = 4; int b = 6; System.out.println(a + b);',re:[/int\s+a\s*=\s*4\s*;/,/int\s+b\s*=\s*6\s*;/,/println\s*\(\s*a\s*\+\s*b\s*\)/],a:'int a = 4;\nint b = 6;\nSystem.out.println(a + b);'},
+{n:"Count 1 to 5",d:"Use a for loop",i:"🔁",s:'// print 1 to 5\n',h:'for (int i = 1; i <= 5; i++) { ... }',re:[/for\s*\(\s*int\s+(\w+)\s*=\s*1\s*;\s*\1\s*(<=\s*5|<\s*6)\s*;\s*\1\s*\+\+\s*\)/,/println\s*\(/],a:'for (int i = 1; i <= 5; i++) {\n    System.out.println(i);\n}'},
+{n:"Square method",d:"Return n * n",i:"🧩",s:'// write static int square(int n)\n',h:'static int square(int n) { return n * n; }',re:[/static\s+int\s+square\s*\(\s*int\s+n\s*\)/,/return\s+n\s*\*\s*n\s*;/],a:'static int square(int n) {\n    return n * n;\n}'},
+{n:"Even or odd",d:"Use the % operator",i:"🎲",s:'// write static boolean isEven(int n)\n',h:'static boolean isEven(int n) { return n % 2 == 0; }',re:[/static\s+boolean\s+isEven\s*\(\s*int\s+n\s*\)/,/n\s*%\s*2\s*==\s*0/,/return/],a:'static boolean isEven(int n) {\n    return n % 2 == 0;\n}'}],
+SQL:[
+{n:"Select everything",d:"All columns",i:"🔎",s:'-- read every column of students\n',h:'SELECT * FROM students;',re:[/select\s+\*\s+from\s+students/i],a:'SELECT * FROM students;'},
+{n:"Filter rows",d:"WHERE marks > 80",i:"🧲",s:'-- names of students with marks above 80\n',h:'SELECT name FROM students WHERE marks > 80;',re:[/select\s+name\s+from\s+students\s+where\s+marks\s*>\s*80/i],a:'SELECT name FROM students WHERE marks > 80;'},
+{n:"Sort the table",d:"Highest marks first",i:"📊",s:'-- students sorted by marks, highest first\n',h:'... ORDER BY marks DESC;',re:[/select\s+.+\s+from\s+students\s+order\s+by\s+marks\s+desc/i],a:'SELECT * FROM students ORDER BY marks DESC;'},
+{n:"Count rows",d:"Use COUNT(*)",i:"🧮",s:'-- how many students are there?\n',h:'SELECT COUNT(*) FROM students;',re:[/select\s+count\s*\(\s*\*\s*\)\s+from\s+students/i],a:'SELECT COUNT(*) FROM students;'},
+{n:"Join tables",d:"orders and customers",i:"🔗",s:'-- join orders with customers\n-- orders.customer_id = customers.id\n',h:'SELECT * FROM orders JOIN customers ON orders.customer_id = customers.id;',re:[/from\s+orders/i,/join\s+customers\s+on\s+orders\.customer_id\s*=\s*customers\.id/i],a:'SELECT * FROM orders\nJOIN customers ON orders.customer_id = customers.id;'}],
+JavaScript:[
+{js:1,out:"Hello, World!",n:"Hello, World",d:"Print a message",i:"👋",s:'// print Hello, World!\n',a:'console.log("Hello, World!");'},
+{js:1,fn:"add",cases:[[[2,3],5],[[-1,1],0],[[10,5],15]],n:"Add function",d:"Return a + b",i:"➕",s:'function add(a, b) {\n  // your code\n}\n',a:'function add(a, b) {\n  return a + b;\n}'},
+{js:1,fn:"square",cases:[[[3],9],[[5],25],[[0],0]],n:"Square function",d:"Return n * n",i:"🧩",s:'function square(n) {\n  // your code\n}\n',a:'function square(n) {\n  return n * n;\n}'},
+{js:1,fn:"isEven",cases:[[[4],true],[[7],false],[[0],true]],n:"Even or odd",d:"Use the % operator",i:"🎲",s:'function isEven(n) {\n  // your code\n}\n',a:'function isEven(n) {\n  return n % 2 === 0;\n}'},
+{js:1,fn:"reverse",cases:[[["abc"],"cba"],[["Ada"],"adA"],[[""],""]],n:"Reverse text",d:"Flip a string",i:"🔄",s:'function reverse(s) {\n  // your code\n}\n',a:'function reverse(s) {\n  return s.split("").reverse().join("");\n}'}],
+C:[
+{n:"Hello, World",d:"Print a message",i:"👋",s:'// print Hello, World!\n',h:'printf("Hello, World!");',re:[/printf\s*\(\s*"Hello, World!(\\n)?"\s*\)\s*;/],a:'printf("Hello, World!\\n");'},
+{n:"Add two numbers",d:"int variables and a sum",i:"➕",s:'// a = 4, b = 6, print the sum\n',h:'int a = 4; int b = 6; printf("%d", a + b);',re:[/int\s+a\s*=\s*4\s*;/,/int\s+b\s*=\s*6\s*;/,/printf\s*\([^;]*a\s*\+\s*b/],a:'int a = 4;\nint b = 6;\nprintf("%d\\n", a + b);'},
+{n:"Count 1 to 5",d:"Use a for loop",i:"🔁",s:'// print 1 to 5\n',h:'for (int i = 1; i <= 5; i++) { printf(...); }',re:[/for\s*\(\s*int\s+(\w+)\s*=\s*1\s*;\s*\1\s*(<=\s*5|<\s*6)\s*;\s*\1\s*\+\+\s*\)/,/printf\s*\(/],a:'for (int i = 1; i <= 5; i++) {\n    printf("%d\\n", i);\n}'},
+{n:"Square function",d:"Return n * n",i:"🧩",s:'// write int square(int n)\n',h:'int square(int n) { return n * n; }',re:[/int\s+square\s*\(\s*int\s+n\s*\)/,/return\s+n\s*\*\s*n\s*;/],a:'int square(int n) {\n    return n * n;\n}'},
+{n:"Even or odd",d:"Use the % operator",i:"🎲",s:'// write int is_even(int n)\n',h:'int is_even(int n) { return n % 2 == 0; }',re:[/int\s+is_even\s*\(\s*int\s+n\s*\)/,/n\s*%\s*2\s*==\s*0/,/return/],a:'int is_even(int n) {\n    return n % 2 == 0;\n}'}]
+};
+const TASKTEXT=[
+ "Write a program that prints Hello, World!",
+ "Store 4 in a and 6 in b, then print their sum.",
+ "Print the numbers 1 to 5, one per line, using a for loop.",
+ "Write a function named square that returns n times n.",
+ "Write a function that returns true when n is even."];
+const TASKTEXT_SQL=["Read every column of the students table.","Get the name of students whose marks are above 80.","List all students sorted by marks, highest first.","Count how many rows the students table has.","Join the orders table with customers using orders.customer_id = customers.id."];
+const TASKTEXT_JS=["Print Hello, World! with console.log.","Write function add(a, b) that returns the sum.","Write function square(n) that returns n times n.","Write function isEven(n) that returns true for even numbers.","Write function reverse(s) that returns the text backwards."];
+const taskText=i=>lang==="DSA"?TASKTEXT_DSA[i]:lang==="SQL"?TASKTEXT_SQL[i]:lang==="JavaScript"?TASKTEXT_JS[i]:TASKTEXT[i];
+function codeCnt(s){return Object.values(s.code||{}).reduce((a,b)=>a+b.length,0)}
+const _render=render;render=function(){_render();if(MODE==="code")codeTrail()};
+function codeTrail(){const T=CODE[lang],d=(S.code&&S.code[lang])||[];$("th").textContent="Your "+lang+" code lab";
+ $("trail").innerHTML=T.map((t,i)=>`<button class="node ${d.includes(i)?"done":""}" data-i="${i}"><div class="orb">${d.includes(i)?"✓":t.i}</div><div><b>${t.n}</b><span>${t.d}</span></div></button>`).join("")}
+let ci=0,shownAns=false;
+function codeStart(i){ci=i;shownAns=false;const t=CODE[lang][i];$("ct").textContent=lang+" · "+t.n;$("cd").textContent=taskText(i);$("ce").value=t.s;$("co").className="";$("co").textContent="";$("code").classList.add("open");$("ce").focus()}
+$("ce").addEventListener("keydown",e=>{if(e.key==="Tab"){e.preventDefault();const a=e.target,st=a.selectionStart;a.value=a.value.slice(0,st)+"  "+a.value.slice(a.selectionEnd);a.selectionStart=a.selectionEnd=st+2}});
+function runJS(code,t){const out=[],con={log:(...a)=>out.push(a.join(" "))};
+ try{if(t.out!==undefined){new Function("console",code)(con);const got=out.join("\n").trim();return got===t.out?{ok:1}:{ok:0,msg:"Your output: "+(got||"(nothing printed)")+"\nExpected: "+t.out}}
+  const f=new Function("console",code+"\n;return typeof "+t.fn+"==='function'?"+t.fn+":null")(con);
+  if(!f)return{ok:0,msg:"Define a function named "+t.fn+"."};
+  for(const [args,exp] of t.cases){const r=f(...args);if(r!==exp)return{ok:0,msg:t.fn+"("+args.map(x=>JSON.stringify(x)).join(", ")+") returned "+JSON.stringify(r)+", expected "+JSON.stringify(exp)}}
+  return{ok:1}}catch(e){return{ok:0,msg:"Error: "+e.message}}}
+$("cRun").onclick=()=>{const t=CODE[lang][ci],code=$("ce").value,o=$("co");let r;
+ if(t.js)r=runJS(code,t);else{r=t.re.every(x=>x.test(code))?{ok:1}:{ok:0,msg:"Not quite yet. Hint: "+t.h}}
+ if(!r.ok){o.className="no";o.textContent="❌ "+r.msg;return}
+ S.code=S.code||{};const d=S.code[lang]||(S.code[lang]=[]);const note=t.js?"(your code was run and tested)":"(checked by pattern, not executed)";
+ if(d.includes(ci)){o.className="ok";o.textContent="✅ Correct! Already completed. "+note;return}
+ if(shownAns){o.className="ok";o.textContent="✅ Correct, but no XP because you viewed the answer. "+note;return}
+ const before=lv(S.xp);S.xp+=30;d.push(ci);
+ const today=new Date().toDateString(),y=new Date(Date.now()-864e5).toDateString();if(S.last!==today){S.streak=S.last===y?S.streak+1:1;S.last=today}
+ save();o.className="ok";o.textContent="✅ Program accepted! +30 XP "+(lv(S.xp)>before?"· Level up! "+rank(lv(S.xp))+" ":"")+note;render()};
+$("cAns").onclick=()=>{if(!confirm("Show the answer? You will not earn XP for this program."))return;shownAns=true;$("ce").value=CODE[lang][ci].a};
+$("cQuit").onclick=()=>{$("code").classList.remove("open");render()};
+/* ===== 10-second timer ===== */
+let tmr=0;
+function tStart(sec,onEnd,stop,bar,lab){clearInterval(tmr);const t0=performance.now();bar.style.width="100%";bar.classList.remove("low");lab.textContent=sec;
+ tmr=setInterval(()=>{if(stop()){clearInterval(tmr);return}const left=Math.max(0,sec-(performance.now()-t0)/1000);
+  bar.style.width=left/sec*100+"%";lab.textContent=Math.ceil(left);bar.classList.toggle("low",left<=3);
+  if(left<=0){clearInterval(tmr);onEnd()}},100)}
+function timeUp(){if(checked)return;const q=L[cur].q[qi];sel=-1;const a=$("act");a.disabled=false;a.click();
+ $("fb").innerHTML="<b>⏰ Time's up!</b> The answer is <code>"+esc(q.o[q.a])+"</code>"}
+function sTimeUp(){if(!sh.on||sh.lock)return;sh.lock=true;hp--;wrongs++;sh.shake=.25;$("shp").textContent=hp;
+ sh.tg.forEach(a=>{if(a.ok)a.st="reveal"});sh.fx.push({x:sh.W/2,y:sh.H*.4,txt:"⏰ TIME'S UP  -1 ♥",c:"#fb7185",t:1.2});beep(110,.25,"sawtooth",.08);
+ setTimeout(()=>{if(!sh.on)return;if(hp<=0)finishShoot(false);else{qi++;if(qi>=L[cur].q.length)finishShoot(true);else sNext()}},1100)}
+/* ===== DSA code lab + level 50 finish ===== */
+const TASKTEXT_DSA=["Write sumArray(arr) that returns the total of all numbers.","Write maxOf(arr) that returns the largest number.","Write linearSearch(arr, x) that returns the index of x, or -1 if it is missing.","Write binarySearch(arr, x) for a sorted array. Return the index of x, or -1.","Write isBalanced(s) that returns true when every ( ) [ ] { } is closed in order. Hint: use a stack."];
+CODE.DSA=[
+{js:1,fn:"sumArray",cases:[[[[1,2,3]],6],[[[]],0],[[[5,-5]],0]],n:"Array sum",d:"Add every item",i:"➕",s:'function sumArray(arr) {\n  // your code\n}\n',a:'function sumArray(arr) {\n  let t = 0;\n  for (const x of arr) t += x;\n  return t;\n}'},
+{js:1,fn:"maxOf",cases:[[[[3,9,2]],9],[[[-4,-1,-7]],-1],[[[8]],8]],n:"Find the maximum",d:"Largest value",i:"🔝",s:'function maxOf(arr) {\n  // your code\n}\n',a:'function maxOf(arr) {\n  let m = arr[0];\n  for (const x of arr) if (x > m) m = x;\n  return m;\n}'},
+{js:1,fn:"linearSearch",cases:[[[[4,8,15],15],2],[[[4,8,15],7],-1],[[[],1],-1]],n:"Linear search",d:"Scan one by one",i:"🔍",s:'function linearSearch(arr, x) {\n  // your code\n}\n',a:'function linearSearch(arr, x) {\n  for (let i = 0; i < arr.length; i++) {\n    if (arr[i] === x) return i;\n  }\n  return -1;\n}'},
+{js:1,fn:"binarySearch",cases:[[[[1,3,5,7,9],7],3],[[[1,3,5,7,9],2],-1],[[[2],2],0]],n:"Binary search",d:"Halve the range",i:"✂️",s:'function binarySearch(arr, x) {\n  // your code\n}\n',a:'function binarySearch(arr, x) {\n  let lo = 0, hi = arr.length - 1;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (arr[mid] === x) return mid;\n    if (arr[mid] < x) lo = mid + 1; else hi = mid - 1;\n  }\n  return -1;\n}'},
+{js:1,fn:"isBalanced",cases:[[["()[]{}"],true],[["(]"],false],[["((("],false],[[""],true]],n:"Balanced brackets",d:"Use a stack",i:"🥞",s:'function isBalanced(s) {\n  // your code\n}\n',a:'function isBalanced(s) {\n  const pairs = { ")": "(", "]": "[", "}": "{" };\n  const st = [];\n  for (const c of s) {\n    if ("([{".includes(c)) st.push(c);\n    else if (pairs[c]) { if (st.pop() !== pairs[c]) return false; }\n  }\n  return st.length === 0;\n}'}];
+const _r3=render;render=function(){_r3();if(lv(S.xp)>=MAXLV&&!S.champ){S.champ=1;save();toast("🏆 LEVEL 50 reached. You completed CodeQuest!")}};
+paintModes();
+render();
+</script>
+</body>
+</html>
